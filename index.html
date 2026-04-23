@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarik Tambang Unsur Intrinsik Drama</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Poppins:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f0f4f8;
+            overflow-x: hidden;
+        }
+
+        .game-title {
+            font-family: 'Luckiest+Guy', cursive;
+            text-shadow: 2px 2px 0px #2563eb;
+        }
+
+        .rope {
+            stroke-dasharray: 10, 5;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .character {
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .win-gradient {
+            background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+        }
+
+        /* Music Toggle Button Style */
+        #music-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-start min-h-screen p-4">
+
+    <!-- Audio Element -->
+    <audio id="bg-music" loop>
+        <source src="https://github.com/dimassyehabudin56-arch/musik-game/raw/refs/heads/main/Gold_Coin_Sunrise.mp3" type="audio/mpeg">
+        Browser Anda tidak mendukung elemen audio.
+    </audio>
+
+    <!-- Music Control -->
+    <button id="music-toggle" class="bg-white p-3 rounded-full shadow-lg border-2 border-blue-500 hover:scale-110 transition-transform">
+        <svg id="music-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600">
+            <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        </svg>
+    </button>
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl md:text-5xl text-blue-600 game-title tracking-wider">TARIK TAMBANG DRAMA</h1>
+        <p class="text-gray-600 font-semibold">Tarik lawanmu dengan menjawab unsur intrinsik!</p>
+    </div>
+
+    <!-- Game Arena -->
+    <div class="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl p-8 mb-8 overflow-hidden border-b-8 border-gray-200">
+        <!-- Ground Line -->
+        <div class="absolute bottom-16 left-0 w-full h-2 bg-gray-300"></div>
+        <div class="absolute bottom-16 left-1/2 -translate-x-1/2 w-1 h-12 bg-red-500 z-10"></div>
+        
+        <!-- Score Display -->
+        <div class="flex justify-between mb-4 font-bold text-lg">
+            <div id="player-score-label" class="text-blue-600">Siswa: 0</div>
+            <div id="cpu-score-label" class="text-red-600">Lawan (Bot): 0</div>
+        </div>
+
+        <!-- SVG Arena -->
+        <svg id="game-svg" viewBox="0 0 800 200" class="w-full h-48">
+            <!-- The Rope -->
+            <line id="tug-rope" x1="200" y1="100" x2="600" y2="100" stroke="#8b4513" stroke-width="8" class="rope" />
+            
+            <!-- Player Character -->
+            <g id="player-group" class="character">
+                <circle cx="200" cy="80" r="20" fill="#3b82f6" /> <!-- Head -->
+                <rect x="190" y="100" width="20" height="40" fill="#3b82f6" rx="5" /> <!-- Body -->
+                <line x1="200" y1="110" x2="250" y2="100" stroke="#3b82f6" stroke-width="6" /> <!-- Arm -->
+                <text x="185" y="160" font-size="12" font-weight="bold" fill="#1e3a8a">SISWA</text>
+            </g>
+
+            <!-- CPU Character -->
+            <g id="cpu-group" class="character">
+                <circle cx="600" cy="80" r="20" fill="#ef4444" /> <!-- Head -->
+                <rect x="590" y="100" width="20" height="40" fill="#ef4444" rx="5" /> <!-- Body -->
+                <line x1="600" y1="110" x2="550" y2="100" stroke="#ef4444" stroke-width="6" /> <!-- Arm -->
+                <text x="585" y="160" font-size="12" font-weight="bold" fill="#7f1d1d">BOT</text>
+            </g>
+        </svg>
+    </div>
+
+    <!-- Question Box -->
+    <div id="question-container" class="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-6 border-t-4 border-blue-500">
+        <div id="quiz-area">
+            <h2 id="question-text" class="text-xl font-bold text-gray-800 mb-6 text-center leading-relaxed">
+                Ketuk tombol pilihan untuk mulai bermain!
+            </h2>
+            <div id="options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Options will be here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Win Modal -->
+    <div id="win-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl p-10 text-center max-w-md w-full">
+            <div id="win-icon" class="text-6xl mb-4">🏆</div>
+            <h2 id="win-title" class="text-3xl font-bold mb-2">Selamat!</h2>
+            <p id="win-message" class="text-gray-600 mb-8">Kamu berhasil menarik lawanmu!</p>
+            <button onclick="resetGame()" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all">
+                Main Lagi
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "Unsur intrinsik drama yang berisi pesan moral yang ingin disampaikan penulis kepada penonton disebut...",
+                options: ["Tema", "Amanat", "Alur", "Latar"],
+                correct: 1
+            },
+            {
+                q: "Bagian dalam naskah drama yang memberikan petunjuk perilaku atau suasana (biasanya dalam kurung) disebut...",
+                options: ["Dialog", "Prolog", "Kramagung", "Epilog"],
+                correct: 2
+            },
+            {
+                q: "Tahapan alur di mana masalah dalam drama mencapai titik puncak ketegangan disebut...",
+                options: ["Orientasi", "Komplikasi", "Klimaks", "Resolusi"],
+                correct: 2
+            },
+            {
+                q: "Percakapan antara dua orang tokoh atau lebih dalam drama disebut...",
+                options: ["Monolog", "Prolog", "Dialog", "Epilog"],
+                correct: 2
+            },
+            {
+                q: "Keterangan mengenai tempat, waktu, dan suasana dalam pementasan drama disebut...",
+                options: ["Latar", "Tema", "Alur", "Penokohan"],
+                correct: 0
+            },
+            {
+                q: "Tokoh yang menjadi lawan dari tokoh utama dan seringkali memiliki sifat buruk disebut...",
+                options: ["Protagonis", "Antagonis", "Tritagonis", "Figuran"],
+                correct: 1
+            },
+            {
+                q: "Kata pengantar pada awal pementasan drama yang biasanya berisi gambaran umum cerita disebut...",
+                options: ["Epilog", "Dialog", "Solilokui", "Prolog"],
+                correct: 3
+            },
+            {
+                q: "Jenis alur yang menceritakan peristiwa dari masa kini kembali ke masa lalu disebut...",
+                options: ["Maju", "Campuran", "Mundur (Flashback)", "Linear"],
+                correct: 2
+            },
+            {
+                q: "Ciri khas teks drama yang paling membedakannya dengan teks narasi lain adalah adanya...",
+                options: ["Paragraf", "Dialog", "Tanda petik", "Banyak halaman"],
+                correct: 1
+            },
+            {
+                q: "Tokoh penengah dalam sebuah konflik drama disebut...",
+                options: ["Antagonis", "Protagonis", "Tritagonis", "Statis"],
+                correct: 2
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let ropePosition = 0;
+        const maxPull = 150;
+        let scorePlayer = 0;
+        let scoreCpu = 0;
+        let isMusicPlaying = false;
+
+        const bgMusic = document.getElementById('bg-music');
+        const musicToggle = document.getElementById('music-toggle');
+        const musicIcon = document.getElementById('music-icon');
+        const questionText = document.getElementById('question-text');
+        const optionsGrid = document.getElementById('options-grid');
+        const playerGroup = document.getElementById('player-group');
+        const cpuGroup = document.getElementById('cpu-group');
+        const rope = document.getElementById('tug-rope');
+        const winModal = document.getElementById('win-modal');
+
+        // Music Control Logic
+        musicToggle.onclick = () => {
+            if (isMusicPlaying) {
+                bgMusic.pause();
+                musicIcon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>';
+            } else {
+                bgMusic.play().catch(e => console.log("User interaction required for audio"));
+                musicIcon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>';
+            }
+            isMusicPlaying = !isMusicPlaying;
+        };
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function initGame() {
+            shuffle(questions);
+            currentQuestionIndex = 0;
+            ropePosition = 0;
+            scorePlayer = 0;
+            scoreCpu = 0;
+            updateUI();
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                checkFinalWinner();
+                return;
+            }
+
+            const qData = questions[currentQuestionIndex];
+            questionText.innerText = qData.q;
+            optionsGrid.innerHTML = '';
+
+            qData.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = "p-4 bg-gray-50 hover:bg-blue-50 border-2 border-gray-200 hover:border-blue-400 rounded-xl text-left font-medium transition-all transform hover:-translate-y-1";
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    // Try to start music on first interaction if not playing
+                    if (!isMusicPlaying) musicToggle.click();
+                    handleAnswer(index);
+                };
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedIndex) {
+            const qData = questions[currentQuestionIndex];
+            const isCorrect = selectedIndex === qData.correct;
+
+            if (isCorrect) {
+                ropePosition += 40;
+                scorePlayer++;
+                animatePull('player');
+            } else {
+                ropePosition -= 40;
+                scoreCpu++;
+                animatePull('cpu');
+            }
+
+            updateUI();
+            currentQuestionIndex++;
+
+            if (Math.abs(ropePosition) >= maxPull) {
+                setTimeout(checkFinalWinner, 600);
+            } else {
+                setTimeout(showQuestion, 600);
+            }
+        }
+
+        function animatePull(side) {
+            const container = document.getElementById('game-svg');
+            container.classList.add('shake');
+            setTimeout(() => container.classList.remove('shake'), 500);
+        }
+
+        function updateUI() {
+            playerGroup.setAttribute('transform', `translate(${ropePosition}, 0)`);
+            cpuGroup.setAttribute('transform', `translate(${ropePosition}, 0)`);
+            rope.setAttribute('x1', 200 + ropePosition);
+            rope.setAttribute('x2', 600 + ropePosition);
+
+            document.getElementById('player-score-label').innerText = `Siswa: ${scorePlayer}`;
+            document.getElementById('cpu-score-label').innerText = `Lawan (Bot): ${scoreCpu}`;
+        }
+
+        function checkFinalWinner() {
+            winModal.classList.remove('hidden');
+            const winTitle = document.getElementById('win-title');
+            const winMsg = document.getElementById('win-message');
+            const winIcon = document.getElementById('win-icon');
+
+            if (ropePosition > 0) {
+                winTitle.innerText = "Yeee, Menang!";
+                winMsg.innerText = "Kamu hebat dalam memahami unsur intrinsik drama!";
+                winIcon.innerText = "🏆";
+                winTitle.className = "text-3xl font-bold mb-2 text-blue-600";
+            } else if (ropePosition < 0) {
+                winTitle.innerText = "Yah, Kalah...";
+                winMsg.innerText = "Jangan menyerah! Ayo pelajari lagi naskah dramanya.";
+                winIcon.innerText = "🦾";
+                winTitle.className = "text-3xl font-bold mb-2 text-red-600";
+            } else {
+                winTitle.innerText = "Seri!";
+                winMsg.innerText = "Kekuatan kalian seimbang. Coba lagi!";
+                winIcon.innerText = "🤝";
+                winTitle.className = "text-3xl font-bold mb-2 text-gray-600";
+            }
+        }
+
+        function resetGame() {
+            winModal.classList.add('hidden');
+            initGame();
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
